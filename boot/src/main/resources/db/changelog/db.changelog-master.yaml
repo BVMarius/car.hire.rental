@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: '0001-create-rental-table'
-      author: vladcarcu
+      author: mariusmoraru
       comments: 'Creating the rental table'
       changes:
         - createTable:
@@ -14,7 +14,7 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
               - column:
-                  name: user_id
+                  name: consumer_id
                   type: int
                   constraints:
                     nullable: false
@@ -30,6 +30,16 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: end_date
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: inserted_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
                   type: timestamp
                   constraints:
                     nullable: false

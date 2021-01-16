@@ -3,7 +3,7 @@ info:
   title: Car Hire Rental
   version: 0.1.0
   contact:
-    name: Vlad Carcu
+    name: Marius Moraru
   description: Car Hire Rental API
 servers:
   - url: http://localhost:{port}
@@ -19,79 +19,183 @@ security:
   - oAuth:
       - write
       - read
-
 paths:
   # The endpoints for the rental resource
   /rental:
-
-    # Get all rentals
+    post:
+      tags:
+        - rental
+      description: Creates a rental
+      operationId: createRental
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRentalRequest'
+        description: Creates a rental
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: CreateResponse
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedResponse'
+          description: Unauthorized
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
+          description: UnprocessableEntity
+        '500':
+          $ref: '#/components/responses/Unauthorized'
+      summary: Creates an user
+  /rental/rental_entries:
     get:
       tags:
         - rental
-      summary: get rentals
-      description: returns a list of all the rentals, without any filtering
-      operationId: getRentals
+      description: List all rentals to date
+      operationId: listRental
       responses:
         '200':
-          description: success
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/RentalDTO'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                  $ref: '#/components/schemas/RentalResponse'
+          description: List all rented cars
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedResponse'
+          description: Unauthorized
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
+          description: UnprocessableEntity
         '500':
-          $ref: '#/components/responses/ServerError'
-
-    # Add a new rental
-    post:
+          $ref: '#/components/responses/Unauthorized'
+  /rental/{rentalId}:
+    get:
       tags:
         - rental
-      summary: add a new rental
-      description: adds a new rental and returns its id
-      operationId: addRental
+      description: Return a specific rental by id
+      summary: "Find rented car by ID"
+      operationId: getRentalById
+      parameters:
+        - name: rentalId
+          in: path
+          description: ID of rental service to return
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentalResponse'
+          description: List all users
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedResponse'
+          description: Unauthorized
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
+          description: UnprocessableEntity
+        '500':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags:
+        - rental
+      summary: Updates  a specific rental
+      description: This can only be done by the logged in user.
+      operationId: updateRental
+      parameters:
+        - name: rentalId
+          in: path
+          description: "user that needs to be updated"
+          required: true
+          schema:
+            type: integer
+            format: int64
       requestBody:
-        description: The data of the rental to insert.
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RentalDTO'
-            example:
-              user:
-                id: 1
-              car:
-                id: 1
-              startDate: '2020-01-01T12:00:00.000-00:00'
-              endDate: '2020-01-02T14:00:00.000-00:00'
+              $ref: '#/components/schemas/CreateRentalRequest'
+        description: Updates a rental
+        required: true
       responses:
-        '201':
-          $ref: '#/components/responses/Created'
+        '200':
+          description: "Update successfull"
         '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/ServerError'
-
+          description: "Invalid rental supplied"
+        '404':
+          description: "Rental not found"
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
+          description: UnprocessableEntity
+    delete:
+      tags:
+        - rental
+      summary: Deletes a rental
+      description: This can only be done by the logged in user.
+      operationId: deleteRental
+      parameters:
+        - name: rentalId
+          in: path
+          description: The id of the user that needs to be deleted
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: "Resource deleted successfull"
+        '400':
+          description: "Invalid rental supplied"
+        '404':
+          description: "Rental not found"
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
+          description: UnprocessableEntity
 components:
   responses:
-    Created:
-      description: the id of the created entity
+    Unauthorized:
+      description: unauthorized response
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/CreatedDTO'
-    NotFound:
-      description: the results are either empty or couldn't be found
-    Unauthorized:
-      description: unauthorized
+            type: array
+            items:
+              $ref: '#/components/schemas/UnauthorizedResponse'
     BadRequest:
       description: bad request
       content:
@@ -107,6 +211,73 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorDTO'
   schemas:
+    UnauthorizedResponse:
+      description: The response when an user is not uthorized to access a specific resource.
+      properties:
+        message:
+          description: The message to be displayed
+          type: string
+    CreateUserRequest:
+      description: Create user details.
+      properties:
+        email:
+          description: User's email
+          type: string
+        password:
+          description: User's password
+          type: string
+        username:
+          description: Username of the user
+          type: string
+        firstName:
+          description: First name of the user
+          type: string
+        lastName:
+          description: Last name of the user
+          type: string
+        country:
+          description: Contry of residence for the user
+          type: integer
+        status:
+          description: User status
+          enum:
+            - ACTIVE
+            - DELETED
+    UserResponse:
+      description: List user details.
+      properties:
+        id:
+          description: User id
+          type: integer
+        email:
+          description: User's email
+          type: string
+        username:
+          description: Username of the user
+          type: string
+        firstName:
+          description: First name of the user
+          type: string
+        lastName:
+          description: Last name of the user
+          type: string
+        country:
+          description: Contry of residence for the user
+          type: string
+        license_number:
+          description: License number
+          type: string
+        status:
+          description: User status
+          enum:
+            - ACTIVE
+            - DELETED
+    SuccessResponse:
+      description: Success response when an user is created
+      properties:
+        id:
+          description: User id
+          type: integer
     ValidationDTO:
       type: object
       properties:
@@ -123,33 +294,160 @@ components:
           type: string
         message:
           type: string
-    RentalDTO:
+    UnprocessableEntityResponse:
+      description: "List of JSON-API spec compliant error response objects"
+      properties:
+        errors:
+          description: "List of errors"
+          items:
+            "$ref": "#/components/schemas/ValidationError"
+          type: array
+      required:
+        - errors
       type: object
+    ValidationError:
+      description: JSON-API spec compliant error response object
+      properties:
+        code:
+          description: Code representing reason for error
+          enum:
+            - INVALID_CONSTRAINT
+            - INVALID_FORMAT
+            - INVALID_TYPE
+            - INVALID_ENUM_VALUE
+            - IN_USE
+            - NOT_EDITABLE
+            - REQUIRED
+          type: string
+        detail:
+          description: Error detail
+          nullable: true
+          type: string
+      title: ValidationError
+      type: object
+    CreateCarRequest:
+      description: Create car details.
+      properties:
+        make:
+          description: car's maker
+          type: string
+        model:
+          description: model of the car
+          type: string
+        year:
+          description: the year on which the car war build
+          type: integer
+        mileage:
+          description: Number of kilometers that a car holds
+          type: integer
+        fuel:
+          description: Fuel of the car
+          enum:
+            - GASOLINE
+            - DIESEL
+            - LIQUEFIED_NATURAL_GAS
+            - HYBRID
+            - ELECTRIC
+        carClass:
+          description: Car class
+          enum:
+            - COMPACT
+            - EXECUTIVE
+            - MINIVAN
+            - SUV
+        plateNumber:
+          description: Plate number
+          type: string
+        status:
+          description: Car status
+          enum:
+            - ACTIVE
+            - DELETED
+    CarResponse:
       properties:
         id:
+          description: car id
           type: integer
-          format: int32
-          description: rental id
-        user:
-          $ref: '#/components/schemas/UserDTO'
-        car:
-          $ref: '#/components/schemas/CarDTO'
-        startDate:
+        make:
+          description: car's maker
           type: string
-          format: date-time
-          description: the approximate time when the car is picked up
-        endDate:
+        model:
+          description: model of the car
           type: string
-          format: date-time
-          description: the approximate time when the car is returned
+        year:
+          description: the year on which the car war build
+          type: integer
+        mileage:
+          description: Number of kilometers that a car holds
+          type: integer
+        fuel:
+          description: Fuel of the car
+          enum:
+            - GASOLINE
+            - DIESEL
+            - LIQUEFIED_NATURAL_GAS
+            - HYBRID
+            - ELECTRIC
+        carClass:
+          description: Car class
+          enum:
+            - COMPACT
+            - EXECUTIVE
+            - MINIVAN
+            - SUV
+        plateNumber:
+          description: Plate number
+          type: string
         status:
-          $ref: '#/components/schemas/RentalStatus'
-    RentalStatus:
-      type: string
-      enum:
-        - ACTIVE
-        - CANCELLED
-
+          description: Car status
+          enum:
+            - ACTIVE
+            - DELETED
+    CreateRentalRequest:
+      properties:
+        carId:
+          description: car id
+          type: integer
+        userId:
+          description: user id
+          type: integer
+        startDate:
+          description: ISO 8601 format datetime representing starting time of dropoff slot
+          format: date-time
+          type: string
+        endDate:
+          description: ISO 8601 format datetime representing starting time of dropoff slot
+          format: date-time
+          type: string
+        status:
+          description: Car status
+          enum:
+            - ACTIVE
+            - DELETED
+    RentalResponse:
+      properties:
+        id:
+          description: rental id
+          type: integer
+        carId:
+          description: car id
+          type: integer
+        userId:
+          description: user id
+          type: integer
+        startDate:
+          description: ISO 8601 format datetime representing starting time of dropoff slot
+          format: date-time
+          type: string
+        endDate:
+          description: ISO 8601 format datetime representing starting time of dropoff slot
+          format: date-time
+          type: string
+        status:
+          description: Car status
+          enum:
+            - ACTIVE
+            - DELETED
     UserDTO:
       type: object
       properties:
@@ -230,7 +528,6 @@ components:
       enum:
         - ACTIVE
         - DELETED
-
     CreatedDTO:
       type: object
       properties:
