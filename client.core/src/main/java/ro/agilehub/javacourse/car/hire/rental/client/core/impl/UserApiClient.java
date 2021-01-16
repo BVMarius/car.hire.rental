@@ -14,7 +14,7 @@ import ro.agilehub.javacourse.car.hire.rental.client.core.specification.UserApi;
 
 import java.util.NoSuchElementException;
 
-@FeignClient(name = "${user.name:user}", url = "${user.url:http://localhost:8080}")
+@FeignClient(name = "${user.name:user}", url = "${user.url:http://localhost:8080/api}")
 public interface UserApiClient extends UserApi {
     String CORE = "core";
 

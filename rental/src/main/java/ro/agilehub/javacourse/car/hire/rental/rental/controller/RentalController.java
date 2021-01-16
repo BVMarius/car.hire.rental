@@ -20,6 +20,7 @@ public class RentalController implements RentalApi {
 
     @Override
     public ResponseEntity<CreatedDTO> addRental(@Valid RentalDTO rentalDTO) {
+
         var id = rentalService.createNewRental(rentalDTOMapper.toRentalDO(rentalDTO));
         return ResponseEntity.ok(new CreatedDTO().id(id));
     }
