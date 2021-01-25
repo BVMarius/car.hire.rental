@@ -1,9 +1,9 @@
 openapi: 3.0.1
 info:
-  title: Car Hire API
+  title: Car Hire Client API
   version: 0.1.0
   contact:
-    name: Vlad Carcu
+    name: Marius Moraru
   description: Car Hire API
 servers:
   - url: http://localhost:{port}
@@ -14,6 +14,8 @@ servers:
 tags:
   - name: user
     description: User resource
+  - name: car
+    description: Car resource
 
 paths:
   # The endpoints for the user resource
@@ -160,7 +162,149 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/ServerError'
+  /car:
 
+    # Get all users
+    get:
+      tags:
+        - car
+      summary: get cars
+      description: returns a list of all the users, without any filtering
+      operationId: getCars
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CarDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    # Add a new user
+    post:
+      tags:
+        - car
+      summary: add a new car
+      description: adds a new car and returns its id
+      operationId: addCar
+      requestBody:
+        description: The data of the user to insert.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CarDTO'
+            example:
+              email: vladcarcu@email.com
+              username: vladcarcu
+              password: secret
+              firstName: Vlad
+              lastName: Carcu
+              countryOfResidence:
+                id: 1
+              driverLicense: BV123456
+              status: ACTIVE
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # The endpoints for individual user related operations
+  /car/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+          format: int32
+
+    # Get a car by id
+    get:
+      tags:
+        - car
+      summary: get a car
+      description: returns the details for a user, based on id, except the password
+      operationId: getCar
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    # Delete a user by id
+    delete:
+      tags:
+        - car
+      summary: delete a car
+      description: soft deletes a car
+      operationId: deleteCar
+      responses:
+        '200':
+          description: success
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    # Add a new user
+    patch:
+      tags:
+        - car
+      summary: update an existing car
+      description: allows updating an existing user. Existing fields can't be set to null. The id, username, password and status are always ignored.
+      operationId: patchCar
+      requestBody:
+        description: The fields of the user to change
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CarDTO'
+            example:
+              email: vladcarcu@email.com
+              firstName: Vlad
+              lastName: Carcu
+              countryOfResidence:
+                id: 2
+              driverLicense: BV123456
+      responses:
+        '200':
+          description: success
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
   responses:
     Created:

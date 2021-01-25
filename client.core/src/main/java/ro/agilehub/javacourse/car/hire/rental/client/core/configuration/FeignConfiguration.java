@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
+
+import ro.agilehub.javacourse.car.hire.rental.client.core.error.FeignErrorDecoder;
 import ro.agilehub.javacourse.car.hire.rental.client.core.impl.UserApiClient;
 
 @Configuration
@@ -19,4 +21,10 @@ public class FeignConfiguration {
             requestTemplate.header("Authorization", String.format("Bearer %s", jwt.getTokenValue()));
         };
     }
+
+    @Bean
+    public FeignErrorDecoder clientErrorDecoder() {
+        return new FeignErrorDecoder();
+    }
+
 }
